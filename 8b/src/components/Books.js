@@ -1,11 +1,15 @@
 import React from 'react'
+import { useApolloClient } from 'react-apollo-hooks'
 
 const Books = (props) => {
   if (!props.show) {
     return null
   }
 
-  const books = []
+  const client  = useApolloClient
+  if (props.result.loading) {
+    return <div>loading...</div>
+  }
 
   return (
     <div>
@@ -22,7 +26,7 @@ const Books = (props) => {
               published
             </th>
           </tr>
-          {books.map(a =>
+          {props.result.data.allBooks.map(a =>
             <tr key={a.title}>
               <td>{a.title}</td>
               <td>{a.author}</td>
