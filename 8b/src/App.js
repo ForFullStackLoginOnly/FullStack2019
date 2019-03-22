@@ -18,6 +18,15 @@ const ALL_AUTHORS = gql`
 }
 `
 
+const EDIT_AUTHOR = gql`
+mutation editAuthor($name: String!, $setBornTo: Int!) {
+  editAuthor(name: $name, setBornTo: $setBornTo)  {
+    name
+    born
+  }
+}
+`
+
 const ALL_BOOKS = gql`
 {
   allBooks {
@@ -27,6 +36,7 @@ const ALL_BOOKS = gql`
   }
 }
 `
+
 const CREATE_BOOK = gql`
 mutation createBook($title: String!, $author: String!, $published: Int!, $genres: [String!]!) {
   addBook(
@@ -57,10 +67,14 @@ const App = () => {
       setErrorMessage(null)
     }, 1000)
   }
+
   const addBook = useMutation(CREATE_BOOK, {
     onError: handleError,
     refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }]
   })
+
+  const editAuthor = useMutation(EDIT_AUTHOR, {refetchQueries: [{ query: ALL_AUTHORS }]})
+  
   return (
     <div>
       <div>
@@ -74,7 +88,7 @@ const App = () => {
           {errorMessage}
         </div>
       }
-      <Authors result={allAuthors}
+      <Authors result={allAuthors} editAuthor={editAuthor}
         show={page === 'authors'}
       />
 
