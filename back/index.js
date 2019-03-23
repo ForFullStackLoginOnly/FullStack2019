@@ -5,7 +5,9 @@ const Author = require('./modules/Author')
 const Book = require('./modules/Book')
 const User = require('./modules/User')
 const MONGODB_URI = 'mongodb+srv://jasperli:muumio@klusteri-lxoe6.mongodb.net/test?retryWrites=true'
+const jwt = require('jsonwebtoken')
 
+const JWT_SECRET = 'NEED_HERE_A_SECRET_KEY'
 
 mongoose.set('useFindAndModify', false)
 
@@ -16,6 +18,7 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true })
   .catch((error) => {
     console.log('error connection to MongoDb', error.message)
   })
+
 
 const typeDefs = gql`
     type Author {
@@ -90,7 +93,7 @@ const resolvers = {
     addBook: async (root, args, context) => {
       let author = await Author.findOne({ name: args.author })
       const currentUser = context.currentUser
-      
+
       if (!currentUser) {
         throw new AuthenticationError("not authenticated")
       }
@@ -98,6 +101,7 @@ const resolvers = {
       if (!author) {
         try {
           author = new Author({ name: args.author })
+          console.log(author)
           await author.save()
         } catch (error) {
           throw new UserInputError(error.message, {
@@ -106,23 +110,25 @@ const resolvers = {
           })
         }
       }
+      const book = new Book({ title: args.title, author: author, published: args.published, genres: args.genres })
+      console.log(book)
       try {
-        const book = new Book({ ...args, author: author })
         await book.save()
       } catch (error) {
         throw new UserInputError(error.message, {
           message: 'failed at creating book',
-          invalidArgs: args
+          invalidArgs: args,
+          author: author
         })
       }
       return book
     },
     editAuthor: async (root, args, context) => {
       const currentUser = context.currentUser
-      
+
       if (!currentUser) {
         throw new AuthenticationError("not authenticated")
-      }      
+      }
       const author = await Author.findOne({ name: args.name })
       if (!author) {
         throw new Error('It was not the author you were looking for')
