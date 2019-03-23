@@ -27,11 +27,11 @@ const typeDefs = gql`
     type Book {
       title: String!
       published: Int!
-      author: Author!
+      author: String!
       genres: [String!]!
       id: ID!
     }
-    type Query {
+    type Query {  
       authorCount: Int!
       bookCount: Int!
       allBooks(author: String, genre: String): [Book!]!
@@ -41,6 +41,7 @@ const typeDefs = gql`
       addBook(
         title: String!
         published: Int!
+        author: String!
         genres: [String]!
       ): Book
       editAuthor(
