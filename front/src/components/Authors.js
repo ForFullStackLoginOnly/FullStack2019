@@ -3,18 +3,28 @@ import { useApolloClient } from 'react-apollo-hooks'
 
 
 const Authors = (props) => {
-  const [name, setName] = useState('')
-  const [born, setBorn] = useState('')
-
   if (!props.show) {
     return null
   }
+  const authors = props.result.data.allAuthors
+
+  if (authors == null) {
+    return (
+      <div>
+        <h2>No authors</h2>
+      </div>
+    )
+  }
+
+  const [name, setName] = useState(authors[0].name)
+  const [born, setBorn] = useState('')
+
 
   const submit = async (e) => {
     e.preventDefault()
 
     await props.editAuthor({
-      variables: { name, setBornTo:parseInt(born) }
+      variables: { name, setBornTo: parseInt(born) }
     })
   }
 
@@ -53,11 +63,14 @@ const Authors = (props) => {
         <h2>set birthyear</h2>
         <form onSubmit={submit}>
           <div>
-            name 
+            name
             <select value={name} onChange={({ target }) => setName(target.value)}>
-            {props.result.data.allAuthors.map(a => 
-              <option value={a.name}>{a.name}</option>
-            )}
+              {authors.map((a, index) =>
+                index == 0
+                ? <option selected="selected" value={a.name}>{a.name}</option>
+                : <option value={a.name}>{a.name}</option>
+                
+              )}
             </select>
           </div>
           <div>

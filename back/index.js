@@ -66,11 +66,7 @@ const resolvers = {
   },
 
   Author: {
-    bookCount: (root) => {
-      const byAuthor = (book) =>
-        book.author === root.name
-      return 1
-    }
+    bookCount: (root) => Book.find({ author: root }).countDocuments()
   },
 
   Mutation: {
@@ -88,19 +84,15 @@ const resolvers = {
       console.log('Book saved: ', book )
       return book
     },
-    editAuthor: (root, args) => {
-      const author = Author.find({ name: args.name })
-      console.log('Editing author: ' , author)
+    editAuthor: async (root, args) => {
+      const author = await Author.findOne({ name: args.name })
       if (!author) {
         console.log('No Author found')
         return null
       }
-
+      console.log('author found')
       author.born = args.setBornTo
-      console.log('Edited author: ', author)
-      author.save()
-      
-      return author
+      return author.save()
     }
   }
 }
