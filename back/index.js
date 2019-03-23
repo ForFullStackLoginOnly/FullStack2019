@@ -27,14 +27,14 @@ const typeDefs = gql`
     type Book {
       title: String!
       published: Int!
-      author: String!
+      author: Author!
       genres: [String!]!
       id: ID!
     }
     type Query {  
       authorCount: Int!
       bookCount: Int!
-      allBooks(author: String, genre: String): [Book!]!
+      allBooks: [Book!]!
       allAuthors: [Author!]!
     }  
     type Mutation {
@@ -56,7 +56,9 @@ const resolvers = {
     authorCount: () => Author.collection.countDocuments(),
     bookCount: () => Book.collection.countDocuments(),
     allBooks: (root, args) => {
-      return Book.find({})
+      const result = Book.find({}).populate('author')
+      console.log('allBooks return: ', result)
+      return result
     },
     allAuthors: (root, args) => {
       return Author.find({})
@@ -67,33 +69,38 @@ const resolvers = {
     bookCount: (root) => {
       const byAuthor = (book) =>
         book.author === root.name
-      return books.filter(byAuthor).length
+      return 1
     }
   },
 
   Mutation: {
     addBook: async (root, args, context) => {
       let author = await Author.findOne({ name: args.author })
-      console.log(args)
       console.log('first', author)
       if (!author) {
         author = new Author({ name: args.author })
-        await author.save();
+        console.log('Creating author')
+        await author.save()
       }
       console.log('second', author)
       const book = new Book({ ...args, author: author })
       await book.save()
+      console.log('Book saved: ', book )
       return book
     },
     editAuthor: (root, args) => {
-      const author = authors.find(a => a.name === args.name)
+      const author = Author.find({ name: args.name })
+      console.log('Editing author: ' , author)
       if (!author) {
+        console.log('No Author found')
         return null
       }
 
-      const updatedAuthor = {...author, born: args.setBornTo }
-      authors = authors.map(a => a.name === args.name ? updatedAuthor : a)
-      return updatedAuthor
+      author.born = args.setBornTo
+      console.log('Edited author: ', author)
+      author.save()
+      
+      return author
     }
   }
 }
