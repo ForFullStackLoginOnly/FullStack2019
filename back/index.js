@@ -1,5 +1,5 @@
 
-const { ApolloServer, gql } = require('apollo-server')
+const { ApolloServer, gql, UserInputError } = require('apollo-server')
 const uuid = require('uuid/v1')
 const mongoose = require('mongoose')
 const Author = require('./modules/Author')
@@ -56,9 +56,7 @@ const resolvers = {
     authorCount: () => Author.collection.countDocuments(),
     bookCount: () => Book.collection.countDocuments(),
     allBooks: (root, args) => {
-      const result = Book.find({}).populate('author')
-      console.log('allBooks return: ', result)
-      return result
+      return Book.find({}).populate('author')
     },
     allAuthors: (root, args) => {
       return Author.find({})
@@ -72,25 +70,33 @@ const resolvers = {
   Mutation: {
     addBook: async (root, args, context) => {
       let author = await Author.findOne({ name: args.author })
-      console.log('first', author)
       if (!author) {
-        author = new Author({ name: args.author })
-        console.log('Creating author')
-        await author.save()
+        try {
+          author = new Author({ name: args.author })
+          await author.save()
+        } catch (error) {
+          throw new UserInputError(error.message, {
+            message: 'failedat creating new author when one does not exist',
+            invalidArgs: args
+          })
+        }
       }
-      console.log('second', author)
-      const book = new Book({ ...args, author: author })
-      await book.save()
-      console.log('Book saved: ', book )
+      try {
+        const book = new Book({ ...args, author: author })
+        await book.save()
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          message: 'failed at creating book',
+          invalidArgs: args
+        })
+      }
       return book
     },
     editAuthor: async (root, args) => {
       const author = await Author.findOne({ name: args.name })
       if (!author) {
-        console.log('No Author found')
-        return null
+        throw new Error('It was not the author you were looking for')
       }
-      console.log('author found')
       author.born = args.setBornTo
       return author.save()
     }
