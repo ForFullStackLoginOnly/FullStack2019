@@ -31,7 +31,7 @@ const Books = (props) => {
   const onChangeUpdate = async (currentGenre) => {
     setGenre(currentGenre)
     const bookByGenre = await props.allBooks.refetch({ genre: currentGenre })
-    setBook(bookByGenre.data.allBooks)
+    setBook(bookByGenre.data.all)
   }
 
 

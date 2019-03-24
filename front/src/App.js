@@ -7,6 +7,7 @@ import Authors from './components/Authors'
 import Books from './components/Books'
 import NewBook from './components/NewBook'
 import LoginForm from './components/LoginForm'
+import Recommend from './components/Recommend'
 
 const ALL_AUTHORS = gql`
 {
@@ -14,6 +15,14 @@ const ALL_AUTHORS = gql`
     name
     born
     bookCount
+  }
+}
+`
+
+const ME = gql`
+{
+  me {
+    favoriteGenre
   }
 }
 `
@@ -37,6 +46,7 @@ query allBooks($genre: String){
   }
 }
 `
+
 const CREATE_BOOK = gql`
 mutation createBook($title: String!, $author: String!, $published: Int!, $genres: [String!]!) {
   addBook(
@@ -66,7 +76,7 @@ const App = () => {
   const [token, setToken] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [genres, setGenres] = useState([])
-
+  
   const client = useApolloClient()
 
   useEffect(() => {
@@ -75,7 +85,7 @@ const App = () => {
 
   const allAuthors = useQuery(ALL_AUTHORS)
   const allBooks = useQuery(ALL_BOOKS)
-
+  const favoriteGenre = useQuery(ME)
   const handleError = (error) => {
     setErrorMessage(error.graphQLErrors[0].message)
     setTimeout(() => {
@@ -113,6 +123,7 @@ const App = () => {
         <button onClick={() => setPage('books')}>books</button>
         {token && <button onClick={() => setPage('add')}>add book</button>}
         {!token && <button onClick={() => setPage('login')}>login</button>}
+        {token && <button onClick={() => setPage('reccommed')}>Recommend</button>}
         {token && <button onClick={logout}>logout</button>}
       </div>
 
@@ -131,6 +142,9 @@ const App = () => {
 
       <NewBook addBook={addBook}
         show={page === 'add'}
+      />
+
+      <Recommend show={page === 'reccommed'}  allBooks={allBooks} favoriteGenre={favoriteGenre}  
       />
 
       <LoginForm
