@@ -28,11 +28,12 @@ mutation editAuthor($name: String!, $setBornTo: Int!) {
 `
 
 const ALL_BOOKS = gql`
-{
-  allBooks {
+query allBooks($genre: String){
+  allBooks (genre: $genre){
     title
     author {name}
     published
+    genres
   }
 }
 `
@@ -64,6 +65,7 @@ const App = () => {
   const [page, setPage] = useState('authors')
   const [token, setToken] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
+  const [genres, setGenres] = useState([])
 
   const client = useApolloClient()
 
@@ -87,6 +89,7 @@ const App = () => {
   })
   const editAuthor = useMutation(EDIT_AUTHOR, { refetchQueries: [{ query: ALL_AUTHORS }] })
   const login = useMutation(LOGIN)
+
 
   const logout = () => {
     setToken(null)
@@ -122,7 +125,7 @@ const App = () => {
         show={page === 'authors'}
       />
 
-      <Books result={allBooks}
+      <Books allBooks={allBooks} genres={genres} setGenres={setGenres}
         show={page === 'books'}
       />
 

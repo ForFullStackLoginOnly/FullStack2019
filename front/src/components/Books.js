@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useApolloClient } from 'react-apollo-hooks'
 
 const Books = (props) => {
@@ -6,14 +6,36 @@ const Books = (props) => {
     return null
   }
 
-  const client  = useApolloClient
-  if (props.result.loading) {
+  const client = useApolloClient
+  if (props.allBooks.loading) {
     return <div>loading...</div>
   }
 
-  const books = props.result.data.allBooks
+  const [books, setBook] = useState(props.allBooks.data.allBooks)
+  const [genre, setGenre] = useState('all genres')
 
-  if(books == null) {
+  if (props.genres.length < 1) {
+    let genres = []
+  
+    books.map(b => {
+      b.genres.map(g => {
+        if (!genres.includes(g)) {
+          console.log(g)
+          genres.push(g)
+        }
+      })
+    })
+    props.setGenres(genres)
+  }
+
+  const onChangeUpdate = async (currentGenre) => {
+    setGenre(currentGenre)
+    const bookByGenre = await props.allBooks.refetch({ genre: currentGenre })
+    setBook(bookByGenre.data.allBooks)
+  }
+
+
+  if (books == null) {
     return (
       <div>
         <h2>No books</h2>
@@ -45,6 +67,11 @@ const Books = (props) => {
           )}
         </tbody>
       </table>
+      <div>
+        <button key='all' onClick={() => onChangeUpdate('all genres')}>any genre</button>
+        {props.genres.map(g =>
+          <button key={g} onClick={() => onChangeUpdate(g)}>{g}</button>)}
+      </div>
     </div>
   )
 }
